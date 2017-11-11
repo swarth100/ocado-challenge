@@ -118,8 +118,6 @@ if __name__ == '__main__':
         # Split on Rule 1
         subContainers = spliOnRule2(container.items, rule)
 
-        print len(subContainers)
-
         tmpConts = []
         for subCont in subContainers:
 
@@ -130,16 +128,15 @@ if __name__ == '__main__':
 
         subContainers = tmpConts
 
-        print len(subContainers)
-
         for subCont in subContainers:
 
-            if rule == 3:
+            if rule >= 3:
                 # Sort contents based on weight
                 subCont.items.sort(key=lambda x: x.weight, reverse=True)
-            elif rule == 5:
+
+            if rule >= 4:
                 # Sort contents based on volume
-                subCont.items.sort(key=lambda x: x.volume, reverse=False)
+                subCont.items.sort(key=lambda x: x.volume, reverse=True)
 
             # Split the contents of the container
             # Initialise result list
@@ -158,6 +155,10 @@ if __name__ == '__main__':
                 while True:
 
                     advanceCurContainer = False
+
+                    # Check for volumes
+                    if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
+                        advanceCurContainer = True
 
                     # Check for weights
                     if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
@@ -198,7 +199,7 @@ if __name__ == '__main__':
         print "Necessary containers: " + str(len(result))
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t |ID: " + str(cont.getLastItemOrder()) + "  \t |weight: " + str(cont.getItemWeights()) + "   \t|segreg: " + str(cont.getSeg())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getSeg())
 
 
     # Cleanup code

@@ -26,12 +26,22 @@ class Container:
 
         return res
 
+    def getItemVolumes(self):
+        res = 0
+
+        for item in self.items:
+            res += item.volume
+
+        return res
+
     def getSeg(self):
 
         segMin = 10
         segMax = 0
 
         for item in self.items:
+            if item.category >= 9:
+                continue
             if item.category > segMax:
                 segMax = item.category
 
