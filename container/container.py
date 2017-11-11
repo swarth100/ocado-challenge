@@ -26,5 +26,30 @@ class Container:
 
         return res
 
+    def getSeg(self):
+
+        segMin = 10
+        segMax = 0
+
+        for item in self.items:
+            if item.category > segMax:
+                segMax = item.category
+
+            if item.category < segMin:
+                segMin = item.category
+
+        segMinVal = False
+        if 1 <= segMin <= 4:
+            segMinVal = True
+
+        if 5 <= segMax <= 8:
+            if segMinVal:
+                return "MIX"
+            else:
+                return "HIG"
+        else:
+            return "LOW"
+
+
 
 

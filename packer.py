@@ -39,7 +39,7 @@ def addAllSubcontainers(subs, main):
     for elem in subs:
         main.append(elem)
 
-def spliOnRule1(items, rule):
+def spliOnRule2(items, rule):
     oldID = 1
 
     res = []
@@ -60,24 +60,33 @@ def spliOnRule1(items, rule):
 
     return res
 
-def spliOnRule4(items, rule):
-    oldID = 1
-
+def spliOnRule5(items, rule):
     res = []
-    buff = Container()
 
-    # Split in containers
-    for item in items:
+    # Check for rule 5
+    if rule >= 5:
+        # Sort by segregation type
+        items.sort(key=lambda x: x.category, reverse=False)
 
-        # On Container INDEX change
-        if (item.orderID != oldID) and (rule >= 2):
-            res.append(buff)
-            oldID = item.orderID
-            buff = Container()
+        splitInt = len(items)
 
-        buff.addItem(item)
+        for i in range (1, splitInt):
+            if items[i].category >= 5:
+                splitInt = i
+                break;
 
-    res.append(buff)
+        containerLeft = Container()
+        addAllSubcontainers(items[splitInt:], containerLeft.items)
+        res.append(containerLeft)
+
+        containerRight = Container()
+        addAllSubcontainers(items[:splitInt], containerRight.items)
+        res.append(containerRight)
+
+    else:
+        newCont = Container()
+        res = [newCont]
+        addAllSubcontainers(items, newCont.items)
 
     return res
 
@@ -107,16 +116,23 @@ if __name__ == '__main__':
         result = []
 
         # Split on Rule 1
-        subContainers = spliOnRule1(container.items, rule)
+        subContainers = spliOnRule2(container.items, rule)
 
+        print len(subContainers)
+
+        tmpConts = []
         for subCont in subContainers:
 
-            if rule >= 4:
-                # Sort by segregation type
-                subCont.items.sort(key=lambda x: x.category, reverse=False)
+            # Split on Rule 5
+            tmpRes = spliOnRule5(subCont.items, rule)
 
-            # Split on Rule 4
-            #subContainers = spliOnRule1(container.items, rule)
+            addAllSubcontainers(tmpRes, tmpConts)
+
+        subContainers = tmpConts
+
+        print len(subContainers)
+
+        for subCont in subContainers:
 
             if rule == 3:
                 # Sort contents based on weight
@@ -182,7 +198,7 @@ if __name__ == '__main__':
         print "Necessary containers: " + str(len(result))
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t |ID: " + str(cont.getLastItemOrder()) + "  \t |weight: " + str(cont.getItemWeights())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t |ID: " + str(cont.getLastItemOrder()) + "  \t |weight: " + str(cont.getItemWeights()) + "   \t|segreg: " + str(cont.getSeg())
 
 
     # Cleanup code
