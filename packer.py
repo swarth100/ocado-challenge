@@ -37,7 +37,8 @@ def getCurContainer(index, list):
 
 def addAllSubcontainers(subs, main):
     for elem in subs:
-        main.append(elem)
+        if len(elem) != 0:
+            main.append(elem)
 
 def spliOnRule2(items, rule):
     oldID = 1
@@ -73,7 +74,7 @@ def spliOnRule5(items, rule):
         for i in range (1, splitInt):
             if items[i].category >= 5:
                 splitInt = i
-                break;
+                break
 
         containerLeft = Container()
         addAllSubcontainers(items[splitInt:], containerLeft.items)
@@ -81,6 +82,34 @@ def spliOnRule5(items, rule):
 
         containerRight = Container()
         addAllSubcontainers(items[:splitInt], containerRight.items)
+        res.append(containerRight)
+
+    else:
+        newCont = Container()
+        res = [newCont]
+        addAllSubcontainers(items, newCont.items)
+
+    return res
+
+def spliOnRule6(items, rule):
+    dryItems = [1, 2, 5, 6]
+    res = []
+
+    # Check for rule 6
+    if rule >= 6:
+        # Sort by segregation type
+        items.sort(key=lambda x: x.category, reverse=False)
+
+        containerLeft = Container()
+        containerRight = Container()
+
+        for item in items:
+            if item.category in dryItems:
+                containerLeft.items.append(item)
+            else:
+                containerRight.items.append(item)
+
+        res.append(containerLeft)
         res.append(containerRight)
 
     else:
@@ -100,7 +129,7 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range (1, 6):
+    for rule in range (1, 7):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
@@ -118,11 +147,22 @@ if __name__ == '__main__':
         # Split on Rule 1
         subContainers = spliOnRule2(container.items, rule)
 
+        # Split on rule 5
         tmpConts = []
         for subCont in subContainers:
 
             # Split on Rule 5
             tmpRes = spliOnRule5(subCont.items, rule)
+
+            addAllSubcontainers(tmpRes, tmpConts)
+
+        subContainers = tmpConts
+
+        # SPlit on rule 6
+        tmpConts = []
+        for subCont in subContainers:
+            # Split on Rule 6
+            tmpRes = spliOnRule6(subCont.items, rule)
 
             addAllSubcontainers(tmpRes, tmpConts)
 
@@ -199,7 +239,7 @@ if __name__ == '__main__':
         print "Necessary containers: " + str(len(result))
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getSeg())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getSeg()) + " \t|DW: " + str(cont.getDry())
 
 
     # Cleanup code

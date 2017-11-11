@@ -10,6 +10,9 @@ class Container:
 
         self.items = []
 
+    def __len__(self):
+        return len(self.items)
+
     def addItem(self, item):
         self.items.append(item)
 
@@ -59,6 +62,25 @@ class Container:
                 return "HIG"
         else:
             return "LOW"
+
+    def getDry(self):
+
+        dryItems = [1, 2, 5, 6]
+
+        dryList = []
+        wetList = []
+
+        for item in self.items:
+            if item.category in dryItems:
+                dryList.append(item)
+            else:
+                wetList.append(item)
+
+        if len(dryList) == 0:
+            return "WET"
+        if len(wetList) == 0:
+            return "DRY"
+        return "MIX"
 
 
 

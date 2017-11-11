@@ -18,6 +18,9 @@ class Item:
 
         self.parseData(data)
 
+    def __len__(self):
+        return 1
+
     def parseData(self, data):
         (productID, height, length, width, self.weight, self.volume, self.category, self.orderID, productID) = data
 
