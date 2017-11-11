@@ -1,5 +1,6 @@
 from container.container import Container
 from item.item import Item
+from splitter.splitter import Splitter
 import sqlite3
 
 # Setup the database connection
@@ -27,15 +28,58 @@ def cleanupView(conn):
     conn.execute("DROP VIEW PRODUCT_ORDERS")
     conn.commit()
 
-def getNewContainer(rule):
-    newContainer = Container(rule)
+def newContainer(indexContainers):
+    newContainer = Container()
     indexContainers.append(newContainer)
 
-    return newContainer
+def getCurContainer(index, list):
+    return list[index]
 
 def addAllSubcontainers(subs, main):
     for elem in subs:
         main.append(elem)
+
+def spliOnRule1(items, rule):
+    oldID = 1
+
+    res = []
+    buff = Container()
+
+    # Split in containers
+    for item in items:
+
+        # On Container INDEX change
+        if (item.orderID != oldID) and (rule >= 2):
+            res.append(buff)
+            oldID = item.orderID
+            buff = Container()
+
+        buff.addItem(item)
+
+    res.append(buff)
+
+    return res
+
+def spliOnRule4(items, rule):
+    oldID = 1
+
+    res = []
+    buff = Container()
+
+    # Split in containers
+    for item in items:
+
+        # On Container INDEX change
+        if (item.orderID != oldID) and (rule >= 2):
+            res.append(buff)
+            oldID = item.orderID
+            buff = Container()
+
+        buff.addItem(item)
+
+    res.append(buff)
+
+    return res
 
 # Main method
 if __name__ == '__main__':
@@ -47,87 +91,98 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range (1, 5):
+    for rule in range (1, 6):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
-        container = Container(rule)
+        container = Container()
 
         # Setup global container
         for row in orderData:
             container.addItem(Item(rule, row))
 
-            # - - - - - - - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - - - - - - - -
         # Actual start of algorithm
 
-        # Split the contents of the container
-        # Initialise result list
-        resContainer = []
-        indexContainers = []
+        result = []
 
-        curContainer = getNewContainer(rule)
+        # Split on Rule 1
+        subContainers = spliOnRule1(container.items, rule)
 
-        # Iterate through all items in global container
-        for item in container.items:
+        for subCont in subContainers:
 
-            # Reset boolean conditions upon every iteration
-            curContainerID = 0
-            newCurContainer = False
-            advanceCurContainer = False
+            if rule >= 4:
+                # Sort by segregation type
+                subCont.items.sort(key=lambda x: x.category, reverse=False)
 
-            # On Container INDEX change
-            if (item.orderID != curContainer.getLastItemOrder()) and (rule >= 2):
+            # Split on Rule 4
+            #subContainers = spliOnRule1(container.items, rule)
 
-                # Add all the elements in the current buffer pool to the final containers
-                addAllSubcontainers(indexContainers, resContainer)
+            if rule == 3:
+                # Sort contents based on weight
+                subCont.items.sort(key=lambda x: x.weight, reverse=True)
+            elif rule == 5:
+                # Sort contents based on volume
+                subCont.items.sort(key=lambda x: x.volume, reverse=False)
 
-                # Reset the current container
-                indexContainers = []
-                newCurContainer = True
+            # Split the contents of the container
+            # Initialise result list
+            indexContainers = []
 
-            # Iterate through all Containers within the given bucket to find a container we can insert in
-            while True:
-                # Check for weights
-                if (curContainer.getItemWeights() + item.weight >= 15) and (rule >= 3):
-                    advanceCurContainer = True
+            newContainer(indexContainers)
 
-                # Retrieve the next Container in the given container bucket
-                if advanceCurContainer:
-                    curContainerID += 1
-                    if curContainerID >= len(indexContainers):
-                        newCurContainer = True
-                        advanceCurContainer = False
-                    else:
-                        curContainer = indexContainers[curContainerID]
+            # Iterate through all items in global container
+            for item in subCont.items:
 
-                if not advanceCurContainer:
-                    break
+                # Reset boolean conditions upon every iteration
+                curContainerID = 0
+                newCurContainer = False
 
-            # Create a new container for the given Bucket
-            if newCurContainer:
-                curContainer = getNewContainer(rule)
+                # Iterate through all Containers within the given bucket to find a container we can insert in
+                while True:
 
-            # Add item to given container
-            curContainer.addItem(item)
+                    advanceCurContainer = False
 
-        # Add the last used container
-        addAllSubcontainers(indexContainers, resContainer)
+                    # Check for weights
+                    if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
+                        advanceCurContainer = True
+
+                    # Retrieve the next Container in the given container bucket
+                    if advanceCurContainer:
+
+                        # Increase the lookIn bucket by one
+                        curContainerID += 1
+
+                        # Check if the new bucket is already initialised.
+                        # Else exit the loop and create a new Container for said bucket
+                        if curContainerID >= len(indexContainers):
+                            newCurContainer = True
+                            advanceCurContainer = False
+
+                    if not advanceCurContainer:
+                        break
+
+                # Create a new container for the given Bucket
+                if newCurContainer:
+                    newContainer(indexContainers)
+
+                # Add item to given container
+                getCurContainer(curContainerID, indexContainers).addItem(item)
+
+            # Add the last used container
+            addAllSubcontainers(indexContainers, result)
 
         # - - - - - - - - - - - - - - - - - - - - -
 
-        result = resContainer
-
         # Remove the leading empty element
-        result.pop(0)
 
         # Final printout
         print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
         print "Rule: #" + str(rule)
         print "Necessary containers: " + str(len(result))
-        print "Breakdown: "
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + "\t |items: " + str(len(cont.items)) + "\t |ID: " + str(cont.getLastItemOrder()) + "  \t |weight: " + str(cont.getItemWeights())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t |ID: " + str(cont.getLastItemOrder()) + "  \t |weight: " + str(cont.getItemWeights())
 
 
     # Cleanup code

@@ -2,14 +2,11 @@ import sys
 
 class Container:
 
-    def __init__(self, rule):
+    def __init__(self):
         # Initialise dimensions
         self.height = sys.maxsize
         self.length = sys.maxsize
         self.width = sys.maxsize
-
-        # Keep track of rules
-        self.rule = rule
 
         self.items = []
 

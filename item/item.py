@@ -13,10 +13,12 @@ class Item:
         self.ID = 0
         self.orderID = 0
         self.weight = 0
+        self.volume = 0
+        self.category = 0
 
         self.parseData(data)
 
     def parseData(self, data):
-        (productID, height, length, width, self.weight, volume, category, self.orderID, productID) = data
+        (productID, height, length, width, self.weight, self.volume, self.category, self.orderID, productID) = data
 
         self.ID = productID
