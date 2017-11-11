@@ -40,6 +40,36 @@ def addAllSubcontainers(subs, main):
         if len(elem) != 0:
             main.append(elem)
 
+def splitOnRule(containers, rule):
+    # Split on a given rule
+    tmpConts = containers[:]
+
+    for curRule in range (1, rule + 1):
+
+        containers = tmpConts[:]
+        tmpConts = []
+
+        for subCont in containers:
+
+            func = None
+            if curRule == 2:
+                func = spliOnRule2
+            if curRule == 5:
+                func = spliOnRule5
+            if curRule == 6:
+                func = spliOnRule6
+            if curRule == 7:
+                func = spliOnRule7
+
+            if func != None:
+                tmpRes = func(subCont.items, rule)
+            else:
+                tmpRes = [subCont]
+
+            addAllSubcontainers(tmpRes, tmpConts)
+
+    return tmpConts
+
 def spliOnRule2(items, rule):
     oldID = 1
 
@@ -50,7 +80,7 @@ def spliOnRule2(items, rule):
     for item in items:
 
         # On Container INDEX change
-        if (item.orderID != oldID) and (rule >= 2):
+        if (item.orderID != oldID):
             res.append(buff)
             oldID = item.orderID
             buff = Container()
@@ -157,7 +187,7 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range (1,8):
+    for rule in range (1, 8):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
@@ -173,38 +203,7 @@ if __name__ == '__main__':
         result = []
 
         # Split on Rule 1
-        subContainers = spliOnRule2(container.items, rule)
-
-        # Split on rule 5
-        tmpConts = []
-        for subCont in subContainers:
-
-            # Split on Rule 5
-            tmpRes = spliOnRule5(subCont.items, rule)
-
-            addAllSubcontainers(tmpRes, tmpConts)
-
-        subContainers = tmpConts
-
-        # SPlit on rule 6
-        tmpConts = []
-        for subCont in subContainers:
-            # Split on Rule 6
-            tmpRes = spliOnRule6(subCont.items, rule)
-
-            addAllSubcontainers(tmpRes, tmpConts)
-
-        subContainers = tmpConts
-
-        # SPlit on rule 6
-        tmpConts = []
-        for subCont in subContainers:
-            # Split on Rule 6
-            tmpRes = spliOnRule7(subCont.items, rule)
-
-            addAllSubcontainers(tmpRes, tmpConts)
-
-        subContainers = tmpConts
+        subContainers = splitOnRule([container], rule)
 
         for subCont in subContainers:
 
@@ -234,11 +233,11 @@ if __name__ == '__main__':
 
                     advanceCurContainer = False
 
-                    # Check for volumes
+                    # Check for volumes (rule 4)
                     if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
                         advanceCurContainer = True
 
-                    # Check for weights
+                    # Check for weights (rule 3)
                     if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
                         advanceCurContainer = True
 
