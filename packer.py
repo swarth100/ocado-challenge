@@ -119,6 +119,34 @@ def spliOnRule6(items, rule):
 
     return res
 
+def spliOnRule7(items, rule):
+    dryItems = [1, 2, 3, 5]
+    res = []
+
+    # Check for rule 7
+    if rule >= 7:
+        # Sort by segregation type
+        items.sort(key=lambda x: x.category, reverse=False)
+
+        containerLeft = Container()
+        containerRight = Container()
+
+        for item in items:
+            if item.category in dryItems:
+                containerLeft.items.append(item)
+            else:
+                containerRight.items.append(item)
+
+        res.append(containerLeft)
+        res.append(containerRight)
+
+    else:
+        newCont = Container()
+        res = [newCont]
+        addAllSubcontainers(items, newCont.items)
+
+    return res
+
 # Main method
 if __name__ == '__main__':
 
@@ -129,7 +157,7 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range (1, 7):
+    for rule in range (1,8):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
@@ -163,6 +191,16 @@ if __name__ == '__main__':
         for subCont in subContainers:
             # Split on Rule 6
             tmpRes = spliOnRule6(subCont.items, rule)
+
+            addAllSubcontainers(tmpRes, tmpConts)
+
+        subContainers = tmpConts
+
+        # SPlit on rule 6
+        tmpConts = []
+        for subCont in subContainers:
+            # Split on Rule 6
+            tmpRes = spliOnRule7(subCont.items, rule)
 
             addAllSubcontainers(tmpRes, tmpConts)
 
