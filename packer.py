@@ -40,6 +40,7 @@ def addAllSubcontainers(subs, main):
         if len(elem) != 0:
             main.append(elem)
 
+# Method to split the given macroContainer given a set of rules
 def splitOnRule(containers, rule):
     # Split on a given rule
     tmpConts = containers[:]
@@ -51,21 +52,25 @@ def splitOnRule(containers, rule):
 
         for subCont in containers:
 
+            # Define a function to apply at a given step
             func = None
             if curRule == 2:
                 func = lambda x: spliOnRule2(x.items)
+            if curRule == 3:
+                subCont.items.sort(key=lambda x: x.weight, reverse=True)
+            if curRule == 4:
+                subCont.items.sort(key=lambda x: x.volume, reverse=True)
             if curRule == 5:
                 func = lambda x: x.getRule5Set()
             if curRule == 6:
                 func = lambda x: x.getRule6Set()
             if curRule == 7:
                 func = lambda x: x.getRule7Set()
+            if func == None:
+                func = lambda x: [x]
 
-            if func != None:
-                tmpRes = func(subCont)
-            else:
-                tmpRes = [subCont]
-
+            # Apply the function and update the set of newly obtained containers
+            tmpRes = func(subCont)
             addAllSubcontainers(tmpRes, tmpConts)
 
     return tmpConts
@@ -88,92 +93,6 @@ def spliOnRule2(items):
         buff.addItem(item)
 
     res.append(buff)
-
-    return res
-
-def spliOnRule5(items, rule):
-    res = []
-
-    # Check for rule 5
-    if rule >= 5:
-        # Sort by segregation type
-        items.sort(key=lambda x: x.category, reverse=False)
-
-        splitInt = len(items)
-
-        for i in range (1, splitInt):
-            if items[i].category >= 5:
-                splitInt = i
-                break
-
-        containerLeft = Container()
-        addAllSubcontainers(items[splitInt:], containerLeft.items)
-        res.append(containerLeft)
-
-        containerRight = Container()
-        addAllSubcontainers(items[:splitInt], containerRight.items)
-        res.append(containerRight)
-
-    else:
-        newCont = Container()
-        res = [newCont]
-        addAllSubcontainers(items, newCont.items)
-
-    return res
-
-def spliOnRule6(items, rule):
-    dryItems = [1, 2, 5, 6]
-    res = []
-
-    # Check for rule 6
-    if rule >= 6:
-        # Sort by segregation type
-        items.sort(key=lambda x: x.category, reverse=False)
-
-        containerLeft = Container()
-        containerRight = Container()
-
-        for item in items:
-            if item.category in dryItems:
-                containerLeft.items.append(item)
-            else:
-                containerRight.items.append(item)
-
-        res.append(containerLeft)
-        res.append(containerRight)
-
-    else:
-        newCont = Container()
-        res = [newCont]
-        addAllSubcontainers(items, newCont.items)
-
-    return res
-
-def spliOnRule7(items, rule):
-    dryItems = [1, 2, 3, 5]
-    res = []
-
-    # Check for rule 7
-    if rule >= 7:
-        # Sort by segregation type
-        items.sort(key=lambda x: x.category, reverse=False)
-
-        containerLeft = Container()
-        containerRight = Container()
-
-        for item in items:
-            if item.category in dryItems:
-                containerLeft.items.append(item)
-            else:
-                containerRight.items.append(item)
-
-        res.append(containerLeft)
-        res.append(containerRight)
-
-    else:
-        newCont = Container()
-        res = [newCont]
-        addAllSubcontainers(items, newCont.items)
 
     return res
 
@@ -206,14 +125,6 @@ if __name__ == '__main__':
         subContainers = splitOnRule([container], rule)
 
         for subCont in subContainers:
-
-            if rule >= 3:
-                # Sort contents based on weight
-                subCont.items.sort(key=lambda x: x.weight, reverse=True)
-
-            if rule >= 4:
-                # Sort contents based on volume
-                subCont.items.sort(key=lambda x: x.volume, reverse=True)
 
             # Split the contents of the container
             # Initialise result list

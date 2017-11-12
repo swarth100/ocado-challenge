@@ -72,7 +72,7 @@ class Container:
                 itemsLeft.append(item)
             else:
                 itemsRight.append(item)
-                
+
         containerLeft = Container()
         containerLeft.addItems(itemsLeft)
 
