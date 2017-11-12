@@ -53,16 +53,16 @@ def splitOnRule(containers, rule):
 
             func = None
             if curRule == 2:
-                func = spliOnRule2
+                func = lambda x: spliOnRule2(x.items)
             if curRule == 5:
-                func = spliOnRule5
+                func = lambda x: x.getRule5Set()
             if curRule == 6:
-                func = spliOnRule6
+                func = lambda x: x.getRule6Set()
             if curRule == 7:
-                func = spliOnRule7
+                func = lambda x: x.getRule7Set()
 
             if func != None:
-                tmpRes = func(subCont.items, rule)
+                tmpRes = func(subCont)
             else:
                 tmpRes = [subCont]
 
@@ -70,7 +70,7 @@ def splitOnRule(containers, rule):
 
     return tmpConts
 
-def spliOnRule2(items, rule):
+def spliOnRule2(items):
     oldID = 1
 
     res = []
@@ -276,7 +276,7 @@ if __name__ == '__main__':
         print "Necessary containers: " + str(len(result))
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getSeg()) + " \t|DW: " + str(cont.getDry())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getRule5Value()) + " \t|DW: " + str(cont.getRule6Value())
 
 
     # Cleanup code

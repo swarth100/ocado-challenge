@@ -10,11 +10,19 @@ class Container:
 
         self.items = []
 
+        self.rule5 = [1,2,3,4]
+        self.rule6 = [1,2,5,6]
+        self.rule7 = [1,2,3,5]
+
     def __len__(self):
         return len(self.items)
 
     def addItem(self, item):
         self.items.append(item)
+
+    def addItems(self, items):
+        for item in items:
+            self.items.append(item)
 
     def getLastItemOrder(self):
         if len(self.items) >= 1:
@@ -37,50 +45,58 @@ class Container:
 
         return res
 
-    def getSeg(self):
+    def getRule5Set(self):
+        return self.getRuleSet(self.rule5)
 
-        segMin = 10
-        segMax = 0
+    def getRule5Value(self):
+        return self.getRuleValue(self.getRule5Set())
 
-        for item in self.items:
-            if item.category >= 9:
-                continue
-            if item.category > segMax:
-                segMax = item.category
+    def getRule6Set(self):
+        return self.getRuleSet(self.rule6)
 
-            if item.category < segMin:
-                segMin = item.category
+    def getRule6Value(self):
+        return self.getRuleValue(self.getRule6Set())
 
-        segMinVal = False
-        if 1 <= segMin <= 4:
-            segMinVal = True
+    def getRule7Set(self):
+        return self.getRuleSet(self.rule7)
 
-        if 5 <= segMax <= 8:
-            if segMinVal:
-                return "MIX"
-            else:
-                return "HIG"
-        else:
-            return "LOW"
+    def getRule7Value(self):
+        return self.getRuleValue(self.getRule7Set())
 
-    def getDry(self):
-
-        dryItems = [1, 2, 5, 6]
-
-        dryList = []
-        wetList = []
+    def getRuleSet(self, ruleSet):
+        itemsLeft = []
+        itemsRight = []
 
         for item in self.items:
-            if item.category in dryItems:
-                dryList.append(item)
+            if item.category in ruleSet:
+                itemsLeft.append(item)
             else:
-                wetList.append(item)
+                itemsRight.append(item)
+                
+        containerLeft = Container()
+        containerLeft.addItems(itemsLeft)
 
-        if len(dryList) == 0:
-            return "WET"
-        if len(wetList) == 0:
-            return "DRY"
-        return "MIX"
+        containerRight = Container()
+        containerRight.addItems(itemsRight)
+
+        return containerLeft, containerRight
+
+    # 0 -> l1 only
+    # 1 -> l2 only
+    # 2 -> l1 and l2
+    # 3 -> empty
+    def getRuleValue(self, vals):
+        l1 = len(vals[0].items)
+        l2 = len(vals[1].items)
+
+        if (l1 > 0):
+            if (l2 > 0):
+                return 2
+            else:
+                return 0
+        if (l2 > 0):
+            return 1
+        return 3
 
 
 
