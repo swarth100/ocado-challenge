@@ -80,8 +80,12 @@ def splitOnRule(containers, rule):
 
     return tmpConts
 
-def iterateThroughContainers(indexContainers, curContainerID):
+def iterateThroughContainers(parent, indexContainers, rule):
+
     newCurContainer = False
+
+    # Reset boolean conditions upon every iteration
+    curContainerID = 0
 
     # Iterate through all Containers within the given bucket to find a container we can insert in
     while True:
@@ -113,7 +117,10 @@ def iterateThroughContainers(indexContainers, curContainerID):
 
     # Create a new container for the given Bucket
     if newCurContainer:
-        newContainer(subCont, indexContainers)
+        newContainer(parent, indexContainers)
+
+    # Add item to given container
+    getCurContainer(curContainerID, indexContainers).addItem(item)
 
     return curContainerID
 
@@ -127,7 +134,7 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range(1, 8):
+    for rule in range(1, 9):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
@@ -142,10 +149,34 @@ if __name__ == '__main__':
 
         result = []
 
+        excludedCategory = []
+        newIndexContainers = []
+
         # Split on Rule 1
         subContainers = splitOnRule([rootContainer], rule)
 
+        subContainers.append(Container())
+
+        subContParent = None
+
         for subCont in subContainers:
+
+            if subCont.parent != subContParent and (rule >= 8) and subContParent:
+
+                if len(newIndexContainers) == 0:
+                    newContainer(subContParent.children[0], newIndexContainers)
+
+                # Iterate through all previously excluded items
+                for item in excludedCategory:
+
+                    iterateThroughContainers(subContParent.children[0], newIndexContainers, rule)
+
+                    # Add the last used container
+                addAllSubcontainers(newIndexContainers, result)
+
+                subContParent = subCont.parent
+                excludedCategory = []
+                newIndexContainers = []
 
             # Split the contents of the container
             # Initialise result list
@@ -154,19 +185,27 @@ if __name__ == '__main__':
             newContainer(subCont, indexContainers)
             subCont.kill()
 
+            contentCat = 0
+
             # Iterate through all items in global container
             for item in subCont.items:
 
-                # Reset boolean conditions upon every iteration
-                curContainerID = 0
+                contentCat = item.category
 
-                curContainerID = iterateThroughContainers(indexContainers, curContainerID)
-
-                # Add item to given container
-                getCurContainer(curContainerID, indexContainers).addItem(item)
+                # Skip 7s and add them later on
+                if (rule >= 8) and (item.category == 7):
+                    excludedCategory.append(item)
+                    continue
+                else:
+                    curContainerID = iterateThroughContainers(subCont, indexContainers, rule)
 
             # Add the last used container
-            addAllSubcontainers(indexContainers, result)
+            if ((contentCat == 4) or (contentCat == 7) or (contentCat == 8)) and (rule >= 8):
+                addAllSubcontainers(indexContainers, newIndexContainers)
+            else:
+                addAllSubcontainers(indexContainers, result)
+
+            subContParent = subCont.parent
 
         # - - - - - - - - - - - - - - - - - - - - -
 
