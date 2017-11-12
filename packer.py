@@ -218,7 +218,7 @@ if __name__ == '__main__':
     for rule in range(1, 10):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 10")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 1")
         rootContainer = Container()
 
         # Setup global container

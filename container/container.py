@@ -66,8 +66,8 @@ class Container:
         res = []
 
         for item in self.items:
-            if not (item.productID in res):
-                res.append(item.productID)
+            #if not (item.productID in res):
+            res.append(item.productID)
 
         return res
 
