@@ -6,3 +6,6 @@ class Point:
         self. y = y
         self.z = z
 
+    def __str__(self):
+        return "Center: (X: " + str(self.x) + " Y: " + str(self.y) + " Z: " + str(self.z) + ")"
+

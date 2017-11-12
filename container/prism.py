@@ -33,6 +33,7 @@ class Prism:
         return "Center: (X: " + str(self.center.x) + " Y: " + str(self.center.y) + " Z: " + str(self.center.z) + ")" + "\nDimensions: (h: " + str(self.height) + " l: " + str(self.length) + " w: " + str(self.width) + ")"
 
     def contains(self, point):
+        #print "Referencing: " + str(point) + ", over PRISM: " + str(self)
         cx = self.center.x
         dx = self.width / 2.0
 
@@ -42,10 +43,10 @@ class Prism:
         cz = self.center.z
         dz = self.height / 2.0
 
-        return (cx - dx < point.x < cx + dx) and (cy - dy < point.y < cy + dy) and (cz - dz < point.z < cz + dz)
+        return (cx - dx <= point.x <= cx + dx) and (cy - dy <= point.y <= cy + dy) and (cz - dz <= point.z <= cz + dz)
 
     def isInRange(self, x, z):
-        return not self.contains(Point(x, self.center.y, z))
+        return self.contains(Point(x, self.center.y, z))
 
     def getMaxY(self):
         return self.center.y + self.length / 2.0

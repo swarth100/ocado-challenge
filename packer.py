@@ -4,6 +4,8 @@ from container.point import Point
 from container.prism import Prism
 import sqlite3
 
+import time
+
 # Setup the database connection
 def DBsetup():
     # Connect to the local database
@@ -112,13 +114,15 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
 
         if (rule >= 9):
 
+            EPSILON = 0.01
+
             # Initialise the minimal steps to perform
-            stepZ = max(item.height, 5)
+            stepZ = max(item.height, 0.2)
             dZ = item.height / 2.0
 
             dY = item.length / 2.0
 
-            stepX = max(item.width, 5)
+            stepX = max(item.width, 0.2)
             dX = item.width / 2.0
 
             isMatch = False
@@ -126,9 +130,9 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
             print "Iterating ID: " + str(item.productID)
 
             # Iterate through all pierce points
-            pz = dZ
+            pz = dZ + EPSILON
             while (pz <= curContainer.height - dZ) and not isMatch:
-                px = dX
+                px = dX + EPSILON
                 while (px <= curContainer.width - dX) and not isMatch:
 
                     depthIntercepts = curContainer.getNextCoord(
@@ -138,7 +142,9 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                     prism = None
 
                     for intercept in depthIntercepts:
-                        prism = Prism(item.height, item.length, item.width, Point(px, intercept.getMaxY() + dY, pz))
+                        point = Point(px, intercept.getMaxY() + dY + 0.1, pz)
+                        print ">>>>>>>>>>>>>DETERMINE INTERCEPTS: " + str(point)
+                        prism = Prism(item.height, item.length, item.width, point)
 
                         for edge in prism.points:
                             if not curContainer.prism.contains(edge):
@@ -148,23 +154,36 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                     isInCollision = False
 
                     if prism:
+                        print "Comparing ...."
                         for element in curContainer.prisms:
                             for edge in prism.points:
                                 if element.contains(edge):
                                     isInCollision = True
                                     break
 
+                            for edge in element.points:
+                                if prism.contains(edge):
+                                    isInCollision = True
+                                    break
+
+                        print ".... Terminated comparison"
+
                         if not isInCollision:
                             curContainer.prisms.append(prism)
+                            print "Adding prism at ID: " + str(curContainerID)
                             print prism
                             isMatch = True
 
-                    px += stepX
+                    px += stepX + EPSILON
 
-                pz += stepZ
+                pz += stepZ + EPSILON
 
             if not isMatch:
                 advanceCurContainer = True
+
+            print "FAILURE COMPLETE"
+
+            #time.sleep(1)
 
 
         # Retrieve the next Container in the given container bucket
@@ -203,7 +222,7 @@ if __name__ == '__main__':
     for rule in range(1, 10):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 1")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 2")
         rootContainer = Container()
 
         # Setup global container
@@ -303,7 +322,7 @@ if __name__ == '__main__':
                   " \t|SG: " + str(cont.getRule5Value()) + \
                   " \t|DW: " + str(cont.getRule6Value()) + \
                   "\t|#: " + str(cont.getCategories()) + \
-                  "   \t|>: " + str(cont.getProductIDs())
+                  "   \n|>: " + str(cont.getProductIDs())
                 # "\t|W: " + str(cont.getItemWeights()) + \
                 # " \t|V: " + str(cont.getItemVolumes()) + \
         print "Necessary containers: " + str(len(result))
