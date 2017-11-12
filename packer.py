@@ -94,19 +94,42 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
 
         advanceCurContainer = False
 
+        curContainer = getCurContainer(curContainerID, indexContainers)
+
         # Check for invalid data
-        if (item.volume >= 65340) or (item.weight >= 15.0):
-            #print "Invalid item with weight: " + str(item.weight) + ", volume: " + str(item.volume)
+        if (item.volume >= 65340) or (item.weight >= 15.0) or (item.height > 33) or (item.width > 36) or (item.length) > 55:
             preventValueSave = True
             break
 
         # Check for volumes (rule 4)
-        if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
+        if (curContainer.getItemVolumes() + item.volume >= 65340) and (rule >= 4):
             advanceCurContainer = True
 
         # Check for weights (rule 3)
-        if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
+        if (curContainer.getItemWeights() + item.weight >= 15.0) and (rule >= 3):
             advanceCurContainer = True
+
+        if (rule >= 9):
+
+            # Initialise the minimal steps to perform
+            stepZ = max(item.height, 0.5)
+            dZ = item.height / 2.0
+
+            stepX = max(item.width, 0.5)
+            dX = item.width / 2.0
+
+            # Iterate through all pierce points
+            z = dZ
+            while z <= 33 - dZ:
+                x = dX
+                while x <= 36 - dX:
+                    
+                    curContainer
+
+                    x += stepX
+
+                z += stepZ
+
 
         # Retrieve the next Container in the given container bucket
         if advanceCurContainer:
@@ -144,7 +167,7 @@ if __name__ == '__main__':
     for rule in range(1, 9):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 20")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 10")
         rootContainer = Container()
 
         # Setup global container

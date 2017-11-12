@@ -13,6 +13,8 @@ class Container:
         self.parent = None
         self.children = []
 
+        self.prisms = []
+
         self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
         self.rule7 = [1,2,3,5]
@@ -155,6 +157,9 @@ class Container:
         if (l2 > 0):
             return 1
         return 3
+
+    def getNextCoord(self, func):
+        return func(self.prisms)
 
 
 
