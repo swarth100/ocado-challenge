@@ -80,6 +80,43 @@ def splitOnRule(containers, rule):
 
     return tmpConts
 
+def iterateThroughContainers(indexContainers, curContainerID):
+    newCurContainer = False
+
+    # Iterate through all Containers within the given bucket to find a container we can insert in
+    while True:
+
+        advanceCurContainer = False
+
+        # Check for volumes (rule 4)
+        if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
+            advanceCurContainer = True
+
+        # Check for weights (rule 3)
+        if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
+            advanceCurContainer = True
+
+        # Retrieve the next Container in the given container bucket
+        if advanceCurContainer:
+
+            # Increase the lookIn bucket by one
+            curContainerID += 1
+
+            # Check if the new bucket is already initialised.
+            # Else exit the loop and create a new Container for said bucket
+            if curContainerID >= len(indexContainers):
+                newCurContainer = True
+                advanceCurContainer = False
+
+        if not advanceCurContainer:
+            break
+
+    # Create a new container for the given Bucket
+    if newCurContainer:
+        newContainer(subCont, indexContainers)
+
+    return curContainerID
+
 # Main method
 if __name__ == '__main__':
 
@@ -122,39 +159,8 @@ if __name__ == '__main__':
 
                 # Reset boolean conditions upon every iteration
                 curContainerID = 0
-                newCurContainer = False
 
-                # Iterate through all Containers within the given bucket to find a container we can insert in
-                while True:
-
-                    advanceCurContainer = False
-
-                    # Check for volumes (rule 4)
-                    if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
-                        advanceCurContainer = True
-
-                    # Check for weights (rule 3)
-                    if (getCurContainer(curContainerID, indexContainers).getItemWeights() + item.weight >= 15.0) and (rule >= 3):
-                        advanceCurContainer = True
-
-                    # Retrieve the next Container in the given container bucket
-                    if advanceCurContainer:
-
-                        # Increase the lookIn bucket by one
-                        curContainerID += 1
-
-                        # Check if the new bucket is already initialised.
-                        # Else exit the loop and create a new Container for said bucket
-                        if curContainerID >= len(indexContainers):
-                            newCurContainer = True
-                            advanceCurContainer = False
-
-                    if not advanceCurContainer:
-                        break
-
-                # Create a new container for the given Bucket
-                if newCurContainer:
-                    newContainer(subCont, indexContainers)
+                curContainerID = iterateThroughContainers(indexContainers, curContainerID)
 
                 # Add item to given container
                 getCurContainer(curContainerID, indexContainers).addItem(item)
@@ -166,17 +172,17 @@ if __name__ == '__main__':
 
         # Remove the leading empty element
 
-        print "FINAL CHILD NUMBER"
+        #print "FINAL CHILD NUMBER"
 
-        print len(rootContainer.children)
+        #print len(rootContainer.children)
 
-        for elem in rootContainer.children:
-            print "--"
-            print len(elem.children)
-            print "-"
+        #for elem in rootContainer.children:
+        #    print "--"
+        #    print len(elem.children)
+        #    print "-"
 
-            for c in elem.children:
-                print len(c.children)
+        #    for c in elem.children:
+        #        print len(c.children)
 
         # Final printout
         print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"

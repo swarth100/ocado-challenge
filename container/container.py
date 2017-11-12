@@ -13,7 +13,7 @@ class Container:
         self.parent = None
         self.children = []
 
-        self.rule5 = [1,2,3,4]
+        self.rule5 = [5,6,7,8]
         self.rule6 = [1,2,5,6]
         self.rule7 = [1,2,3,5]
 
