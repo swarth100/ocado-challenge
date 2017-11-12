@@ -23,7 +23,7 @@ def initView(conn):
         conn.execute("CREATE VIEW PRODUCT_ORDERS AS SELECT * FROM PRODUCTS JOIN ORDERS ON PRODUCTS.ID = ORDERS.PRODUCTID")
         conn.commit()
     except sqlite3.OperationalError:
-        print "View already present"
+        print("View already present")
 
 # Cleanup the product-item view
 def cleanupView(conn):
@@ -170,8 +170,8 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                         # If no collision is detected proceed to add the mapping
                         if not isInCollision:
                             curContainer.prisms.append(prism)
-                            print "Mapped ID: " + str(item.productID)
-                            print prism
+                            print("Mapped ID: " + str(item.productID))
+                            print(prism)
                             isMatch = True
 
                     px += stepX
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     for rule in range(1, 10):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 1")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
         rootContainer = Container()
 
         # Setup global container
@@ -257,7 +257,7 @@ if __name__ == '__main__':
                 # Iterate through all previously excluded items
                 for item in excludedCategory:
 
-                    print "ENTERING WITH RULE: " + str(rule)
+                    print("ENTERING WITH RULE: " + str(rule))
                     iterateThroughContainers(subContParent.children[0], item, excludedIndexContainers, rule)
 
                     # Add the last used container
@@ -300,7 +300,7 @@ if __name__ == '__main__':
             else:
                 addAllSubcontainers(indexContainers, result)
 
-        print "Finished A RULE"
+        print("Finished A RULE")
 
         # - - - - - - - - - - - - - - - - - - - - -
         # Final printout
@@ -308,22 +308,34 @@ if __name__ == '__main__':
         totVol = 0
         totWei = 0
 
-        print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
-        print "Rule: #" + str(rule)
+        print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~")
+        print("Rule: #" + str(rule))
         for i in range (0, len(result)):
             cont = result[i]
             totVol += cont.getItemVolumes()
             totWei += cont.getItemWeights()
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + \
+            print("C#" + str(i) + " \t|items: " + str(len(cont.items)) + \
                   "\t|ID: " + str(cont.getLastItemOrder()) + \
                   "\t|W: " + str(cont.getItemWeights()) + \
                   " \t|V: " + str(cont.getItemVolumes()) + \
                   " \t|SG: " + str(cont.getRule5Value()) + \
                   " \t|DW: " + str(cont.getRule6Value()) + \
                   "\t|#: " + str(cont.getCategories()) + \
-                  "   \t|>: " + str(cont.getProductIDs())
-        print "Necessary containers: " + str(len(result))
-        print "CHECKSUM: " + str(totVol) + " " + str(totWei)
+                  "   \t|>: " + str(cont.getProductIDs()))
+
+        print("Necessary containers: " + str(len(result)))
+        print("CHECKSUM: " + str(totVol) + " " + str(totWei))
+
+        with open('./output/SSPack_rule_9.csv', 'w') as f:
+            print('ORDER_ID,CONTAINER_ID,SKU_ID', file=f)
+            for i in range (0, len(result)):
+                cont = result[i]
+                order_id = str(cont.getLastItemOrder())
+                cont_id = str(i)
+                for product_id in cont.getProductIDs():
+                    print(order_id + ',' + cont_id + ',' + str(product_id), file=f)
+
+
 
     # Cleanup code
     cleanupView(conn)
