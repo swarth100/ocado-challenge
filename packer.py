@@ -1,6 +1,7 @@
 from container.container import Container
 from item.item import Item
-from splitter.splitter import Splitter
+from container.point import Point
+from container.prism import Prism
 import sqlite3
 
 # Setup the database connection
@@ -112,23 +113,58 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
         if (rule >= 9):
 
             # Initialise the minimal steps to perform
-            stepZ = max(item.height, 0.5)
+            stepZ = max(item.height, 5)
             dZ = item.height / 2.0
 
-            stepX = max(item.width, 0.5)
+            dY = item.length / 2.0
+
+            stepX = max(item.width, 5)
             dX = item.width / 2.0
 
+            isMatch = False
+
+            print "Iterating ID: " + str(item.productID)
+
             # Iterate through all pierce points
-            z = dZ
-            while z <= 33 - dZ:
-                x = dX
-                while x <= 36 - dX:
-                    
-                    curContainer
+            pz = dZ
+            while (pz <= curContainer.height - dZ) and not isMatch:
+                px = dX
+                while (px <= curContainer.width - dX) and not isMatch:
 
-                    x += stepX
+                    depthIntercepts = curContainer.getNextCoord(
+                        lambda x: filter(lambda y: y.isInRange(px, pz), x)
+                    )
 
-                z += stepZ
+                    prism = None
+
+                    for intercept in depthIntercepts:
+                        prism = Prism(item.height, item.length, item.width, Point(px, intercept.getMaxY() + dY, pz))
+
+                        for edge in prism.points:
+                            if not curContainer.prism.contains(edge):
+                                prism = None
+                                break
+
+                    isInCollision = False
+
+                    if prism:
+                        for element in curContainer.prisms:
+                            for edge in prism.points:
+                                if element.contains(edge):
+                                    isInCollision = True
+                                    break
+
+                        if not isInCollision:
+                            curContainer.prisms.append(prism)
+                            print prism
+                            isMatch = True
+
+                    px += stepX
+
+                pz += stepZ
+
+            if not isMatch:
+                advanceCurContainer = True
 
 
         # Retrieve the next Container in the given container bucket
@@ -164,10 +200,10 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range(1, 9):
+    for rule in range(1, 10):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 10")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 1")
         rootContainer = Container()
 
         # Setup global container
@@ -262,7 +298,14 @@ if __name__ == '__main__':
             cont = result[i]
             totVol += cont.getItemVolumes()
             totWei += cont.getItemWeights()
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getRule5Value()) + " \t|DW: " + str(cont.getRule6Value()) + "\t|#: " + str(cont.getCategories())
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + \
+                  "\t|ID: " + str(cont.getLastItemOrder()) + \
+                  " \t|SG: " + str(cont.getRule5Value()) + \
+                  " \t|DW: " + str(cont.getRule6Value()) + \
+                  "\t|#: " + str(cont.getCategories()) + \
+                  "   \t|>: " + str(cont.getProductIDs())
+                # "\t|W: " + str(cont.getItemWeights()) + \
+                # " \t|V: " + str(cont.getItemVolumes()) + \
         print "Necessary containers: " + str(len(result))
         print "CHECKSUM: " + str(totVol) + " " + str(totWei)
 

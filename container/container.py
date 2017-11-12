@@ -1,12 +1,17 @@
 import sys
 
+from prism import Prism
+from point import Point
+
 class Container:
 
     def __init__(self):
         # Initialise dimensions
-        self.height = sys.maxsize
-        self.length = sys.maxsize
-        self.width = sys.maxsize
+        self.height = 33
+        self.length = 55
+        self.width = 36
+
+        self.prism = Prism(self.height, self.length, self.width, Point(self.height / 2, self.length / 2, self.width / 2))
 
         self.items = []
 
@@ -14,6 +19,9 @@ class Container:
         self.children = []
 
         self.prisms = []
+
+        # Add invisible wall prism
+        self.prisms.append(Prism(self.height, 0, self.width, Point(self.width/2, 0, self.width/2)))
 
         self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
@@ -51,6 +59,15 @@ class Container:
         for item in self.items:
             if not (item.category in res):
                 res.append(item.category)
+
+        return res
+
+    def getProductIDs(self):
+        res = []
+
+        for item in self.items:
+            if not (item.productID in res):
+                res.append(item.productID)
 
         return res
 
@@ -160,6 +177,8 @@ class Container:
 
     def getNextCoord(self, func):
         return func(self.prisms)
+
+
 
 
 

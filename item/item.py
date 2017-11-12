@@ -15,6 +15,7 @@ class Item:
         self.weight = 0
         self.volume = 0
         self.category = 0
+        self.productID = 0
 
         self.parseData(data)
 
@@ -22,6 +23,6 @@ class Item:
         return 1
 
     def parseData(self, data):
-        (productID, height, length, width, self.weight, self.volume, self.category, self.orderID, productID) = data
+        (self.productID, self.height, self.length, self.width, self.weight, self.volume, self.category, self.orderID, productID) = data
 
         self.ID = productID
