@@ -13,7 +13,7 @@ class Container:
         self.parent = None
         self.children = []
 
-        self.rule5 = [5,6,7,8]
+        self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
         self.rule7 = [1,2,3,5]
 
@@ -42,6 +42,15 @@ class Container:
         newCont.addParent(self.parent)
 
         return newCont
+
+    def getCategories(self):
+        res = []
+
+        for item in self.items:
+            if not (item.category in res):
+                res.append(item.category)
+
+        return res
 
     def addItem(self, item):
         self.items.append(item)

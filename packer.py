@@ -80,9 +80,11 @@ def splitOnRule(containers, rule):
 
     return tmpConts
 
-def iterateThroughContainers(parent, indexContainers, rule):
+def iterateThroughContainers(parent, item, indexContainers, rule):
     # By default to not extend list of containers
     newCurContainer = False
+
+    preventValueSave = False
 
     # Reset boolean conditions upon every iteration
     curContainerID = 0
@@ -91,6 +93,12 @@ def iterateThroughContainers(parent, indexContainers, rule):
     while True:
 
         advanceCurContainer = False
+
+        # Check for invalid data
+        if (item.volume >= 65340) or (item.weight >= 15.0):
+            #print "Invalid item with weight: " + str(item.weight) + ", volume: " + str(item.volume)
+            preventValueSave = True
+            break
 
         # Check for volumes (rule 4)
         if (getCurContainer(curContainerID, indexContainers).getItemVolumes() + item.volume >= 65340) and (rule >= 4):
@@ -120,7 +128,8 @@ def iterateThroughContainers(parent, indexContainers, rule):
         newContainer(parent, indexContainers)
 
     # Add item to given container found via ID
-    getCurContainer(curContainerID, indexContainers).addItem(item)
+    if not preventValueSave:
+        getCurContainer(curContainerID, indexContainers).addItem(item)
 
 # Main method
 if __name__ == '__main__':
@@ -135,7 +144,7 @@ if __name__ == '__main__':
     for rule in range(1, 9):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 20")
         rootContainer = Container()
 
         # Setup global container
@@ -155,24 +164,26 @@ if __name__ == '__main__':
 
         # Initialise Rule 8 variables
         subContParent = None
+        excludedChild = None
         excludedCategory = []
         excludedIndexContainers = []
+
 
         # Iterate through the list of containers
         for subCont in subContainers:
 
             # Check if the global parent has changed.
             # Should it have we must post-process a lot of the data
-            if subCont.parent != subContParent and (rule >= 8) and subContParent:
-                
+            if subCont.parent != subContParent and (rule >= 8) and subContParent and excludedChild:
+
                 # Initialise containers to one should the list be empty
                 if len(excludedIndexContainers) == 0:
-                    newContainer(subContParent.children[0], excludedIndexContainers)
+                    newContainer(excludedChild, excludedIndexContainers)
 
                 # Iterate through all previously excluded items
                 for item in excludedCategory:
 
-                    iterateThroughContainers(subContParent.children[0], excludedIndexContainers, rule)
+                    iterateThroughContainers(subContParent.children[0], item, excludedIndexContainers, rule)
 
                     # Add the last used container
                 addAllSubcontainers(excludedIndexContainers, result)
@@ -180,6 +191,7 @@ if __name__ == '__main__':
                 # Re-initialise categories to empty status
                 excludedCategory = []
                 excludedIndexContainers = []
+                excludedChild = None
 
             # Split the contents of the container
             # Initialise result list
@@ -201,9 +213,11 @@ if __name__ == '__main__':
                 if (rule >= 8) and (item.category == 7):
                     # Skip 7s and add them to a list of excluded items
                     excludedCategory.append(item)
+                    if not excludedChild:
+                        excludedChild = subCont
                 else:
                     # Record all other values normally
-                    iterateThroughContainers(subCont, indexContainers, rule)
+                    iterateThroughContainers(subCont, item, indexContainers, rule)
 
             # Add the last used container
             if ((contentCat == 4) or (contentCat == 7) or (contentCat == 8)) and (rule >= 8):
@@ -211,15 +225,23 @@ if __name__ == '__main__':
             else:
                 addAllSubcontainers(indexContainers, result)
 
+        print "Finished A RULE"
+
         # - - - - - - - - - - - - - - - - - - - - -
         # Final printout
+
+        totVol = 0
+        totWei = 0
+
         print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
         print "Rule: #" + str(rule)
-        print "Necessary containers: " + str(len(result))
         for i in range (0, len(result)):
             cont = result[i]
-            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getRule5Value()) + " \t|DW: " + str(cont.getRule6Value())
-
+            totVol += cont.getItemVolumes()
+            totWei += cont.getItemWeights()
+            print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + "\t|ID: " + str(cont.getLastItemOrder()) + "\t|W: " + str(cont.getItemWeights()) + " \t|V: " + str(cont.getItemVolumes()) + " \t|SG: " + str(cont.getRule5Value()) + " \t|DW: " + str(cont.getRule6Value()) + "\t|#: " + str(cont.getCategories())
+        print "Necessary containers: " + str(len(result))
+        print "CHECKSUM: " + str(totVol) + " " + str(totWei)
 
     # Cleanup code
     cleanupView(conn)
