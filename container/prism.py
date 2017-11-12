@@ -5,13 +5,9 @@ class Prism:
     def __init__(self, height, length, width, center):
         self.points = []
 
-        dh = height / 2.0
-        dl = length / 2.0
-        dw = width / 2.0
-
-        x = center.x
-        y = center.y
-        z = center.z
+        self.x = center.x
+        self.y = center.y
+        self.z = center.z
 
         self. height = height
         self.length = length
@@ -19,15 +15,7 @@ class Prism:
 
         self.center = center
 
-        self.points.append(Point(x - dw, y - dl, z - dh))
-        self.points.append(Point(x + dw, y - dl, z - dh))
-        self.points.append(Point(x - dw, y + dl, z - dh))
-        self.points.append(Point(x + dw, y + dl, z - dh))
-
-        self.points.append(Point(x - dw, y - dl, z + dh))
-        self.points.append(Point(x + dw, y - dl, z + dh))
-        self.points.append(Point(x - dw, y + dl, z + dh))
-        self.points.append(Point(x + dw, y + dl, z + dh))
+        self.setDimension()
 
     def __str__(self):
         return "Center: (X: " + str(self.center.x) + " Y: " + str(self.center.y) + " Z: " + str(self.center.z) + ")" + "\nDimensions: (h: " + str(self.height) + " l: " + str(self.length) + " w: " + str(self.width) + ")"
@@ -50,3 +38,31 @@ class Prism:
 
     def getMaxY(self):
         return self.center.y + self.length / 2.0
+
+    def setDimension(self):
+        dh = self.height / 2.0
+        dl = self.length / 2.0
+        dw = self.width / 2.0
+        self.points = []
+        self.points.append(Point(self.x - dw, self.y - dl, self.z - dh))
+        self.points.append(Point(self.x + dw, self.y - dl, self.z - dh))
+        self.points.append(Point(self.x - dw, self.y + dl, self.z - dh))
+        self.points.append(Point(self.x + dw, self.y + dl, self.z - dh))
+
+        self.points.append(Point(self.x - dw, self.y - dl, self.z + dh))
+        self.points.append(Point(self.x + dw, self.y - dl, self.z + dh))
+        self.points.append(Point(self.x - dw, self.y + dl, self.z + dh))
+        self.points.append(Point(self.x + dw, self.y + dl, self.z + dh))
+
+
+    def rotateVerticle(self):
+        temp_height = self.height
+        self.height = self.length
+        self.length = temp_height
+        self.setDimension()
+
+    def rotateHorizontal(self):
+        temp_length = self.length
+        self.length = self.width
+        self.width = temp_length
+        self.setDimension()

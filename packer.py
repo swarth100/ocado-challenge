@@ -126,57 +126,71 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
             dX = item.width / 2.0
 
             isMatch = False
+            for i in range(3):
+                has_rotated = False
+                # Iterate through all pierce points
+                pz = dZ + EPSILON
+                while (pz <= curContainer.height - dZ) and not isMatch:
+                    px = dX + EPSILON
+                    while (px <= curContainer.width - dX) and not isMatch:
 
-            # Iterate through all pierce points
-            pz = dZ + EPSILON
-            while (pz <= curContainer.height - dZ) and not isMatch:
-                px = dX + EPSILON
-                while (px <= curContainer.width - dX) and not isMatch:
+                        depthIntercepts = curContainer.getNextCoord(
+                                lambda x: filter(lambda y: y.isInRange(px, pz), x)
+                                )
 
-                    depthIntercepts = curContainer.getNextCoord(
-                        lambda x: filter(lambda y: y.isInRange(px, pz), x)
-                    )
+                        prism = None
+                        # Retrieve the value of intercepts perpendicular to the Y-axis
+                        for intercept in depthIntercepts:
+                            point = Point(px, intercept.getMaxY() + dY + EPSILON, pz)
 
-                    prism = None
-                    # Retrieve the value of intercepts perpendicular to the Y-axis
-                    for intercept in depthIntercepts:
-                        point = Point(px, intercept.getMaxY() + dY + EPSILON, pz)
+                            prism = Prism(item.height, item.length, item.width, point)
+                            if rule >= 10:
+                                if not has_rotated and i == 1:
+                                    has_rotated = True
+                                    prism.rotateHorizontal()
+                                if not has_rotated and i == 2:
+                                    has_rotated = True
+                                    prism.rotateVerticle()
 
-                        prism = Prism(item.height, item.length, item.width, point)
-
-                        for edge in prism.points:
-                            if not curContainer.prism.contains(edge):
-                                prism = None
-                                break
-
-                    isInCollision = False
-
-                    if prism:
-                        # Initiate comparison checks
-                        for element in curContainer.prisms:
                             for edge in prism.points:
-                                if element.contains(edge):
-                                    isInCollision = True
+                                if not curContainer.prism.contains(edge):
+                                    prism = None
                                     break
 
-                            for edge in element.points:
-                                if prism.contains(edge):
-                                    isInCollision = True
+                        isInCollision = False
+
+                        if prism:
+                            # Initiate comparison checks
+                            for element in curContainer.prisms:
+                                for edge in prism.points:
+                                    if element.contains(edge):
+                                        isInCollision = True
+                                        break
+
+                                for edge in element.points:
+                                    if prism.contains(edge):
+                                        isInCollision = True
+                                        break
+
+                                if isInCollision:
                                     break
 
-                            if isInCollision:
-                                break
+                            # If no collision is detected proceed to add the mapping
+                            if not isInCollision:
+                                curContainer.prisms.append(prism)
+                                # print "Mapped ID: " + str(item.productID)
+                                # print prism
+                                isMatch = True
 
-                        # If no collision is detected proceed to add the mapping
-                        if not isInCollision:
-                            curContainer.prisms.append(prism)
-                            print "Mapped ID: " + str(item.productID)
-                            print prism
-                            isMatch = True
+                        px += stepX
 
-                    px += stepX
+                    pz += stepZ
 
-                pz += stepZ
+                if rule >= 10:
+                    break
+
+                if isMatch:
+                    break
 
             if not isMatch:
                 advanceCurContainer = True
@@ -215,10 +229,10 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range(1, 10):
+    for rule in range(1, 11):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 1")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 50")
         rootContainer = Container()
 
         # Setup global container
@@ -315,13 +329,13 @@ if __name__ == '__main__':
             totVol += cont.getItemVolumes()
             totWei += cont.getItemWeights()
             print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + \
-                  "\t|ID: " + str(cont.getLastItemOrder()) + \
-                  "\t|W: " + str(cont.getItemWeights()) + \
-                  " \t|V: " + str(cont.getItemVolumes()) + \
-                  " \t|SG: " + str(cont.getRule5Value()) + \
-                  " \t|DW: " + str(cont.getRule6Value()) + \
-                  "\t|#: " + str(cont.getCategories()) + \
-                  "   \t|>: " + str(cont.getProductIDs())
+                    "\t|ID: " + str(cont.getLastItemOrder()) + \
+                    "\t|W: " + str(cont.getItemWeights()) + \
+                    " \t|V: " + str(cont.getItemVolumes()) + \
+                    " \t|SG: " + str(cont.getRule5Value()) + \
+                    " \t|DW: " + str(cont.getRule6Value()) + \
+                    "\t|#: " + str(cont.getCategories()) + \
+                    "   \t|>: " + str(cont.getProductIDs())
         print "Necessary containers: " + str(len(result))
         print "CHECKSUM: " + str(totVol) + " " + str(totWei)
 
