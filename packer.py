@@ -28,8 +28,8 @@ def cleanupView(conn):
     conn.execute("DROP VIEW PRODUCT_ORDERS")
     conn.commit()
 
-def newContainer(indexContainers):
-    newContainer = Container()
+def newContainer(parent, indexContainers):
+    newContainer = parent.generateChildContainer()
     indexContainers.append(newContainer)
 
 def getCurContainer(index, list):
@@ -55,7 +55,7 @@ def splitOnRule(containers, rule):
             # Define a function to apply at a given step
             func = None
             if curRule == 2:
-                func = lambda x: spliOnRule2(x.items)
+                func = lambda x: x.getRule2Set()
             if curRule == 3:
                 subCont.items.sort(key=lambda x: x.weight, reverse=True)
             if curRule == 4:
@@ -74,27 +74,6 @@ def splitOnRule(containers, rule):
             addAllSubcontainers(tmpRes, tmpConts)
 
     return tmpConts
-
-def spliOnRule2(items):
-    oldID = 1
-
-    res = []
-    buff = Container()
-
-    # Split in containers
-    for item in items:
-
-        # On Container INDEX change
-        if (item.orderID != oldID):
-            res.append(buff)
-            oldID = item.orderID
-            buff = Container()
-
-        buff.addItem(item)
-
-    res.append(buff)
-
-    return res
 
 # Main method
 if __name__ == '__main__':
@@ -130,7 +109,7 @@ if __name__ == '__main__':
             # Initialise result list
             indexContainers = []
 
-            newContainer(indexContainers)
+            newContainer(subCont, indexContainers)
 
             # Iterate through all items in global container
             for item in subCont.items:
@@ -169,7 +148,7 @@ if __name__ == '__main__':
 
                 # Create a new container for the given Bucket
                 if newCurContainer:
-                    newContainer(indexContainers)
+                    newContainer(subCont, indexContainers)
 
                 # Add item to given container
                 getCurContainer(curContainerID, indexContainers).addItem(item)

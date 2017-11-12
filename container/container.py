@@ -10,12 +10,20 @@ class Container:
 
         self.items = []
 
+        self.parent = None
+
         self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
         self.rule7 = [1,2,3,5]
 
     def __len__(self):
         return len(self.items)
+
+    def generateChildContainer(self):
+        newCont = Container()
+        newCont.parent = self
+
+        return newCont
 
     def addItem(self, item):
         self.items.append(item)
@@ -42,6 +50,26 @@ class Container:
 
         for item in self.items:
             res += item.volume
+
+        return res
+
+    def getRule2Set(self):
+        maxID = 0
+        res = []
+        buff = Container()
+
+        # Split in containers
+        for item in self.items:
+
+            # On Container INDEX change
+            if (item.orderID != maxID):
+                res.append(buff)
+                maxID = item.orderID
+                buff = self.generateChildContainer()
+
+            buff.addItem(item)
+
+        res.append(buff)
 
         return res
 
