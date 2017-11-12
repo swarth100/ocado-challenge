@@ -1,4 +1,4 @@
-from point import Point
+from container.point import Point
 
 class Prism:
 

@@ -1,7 +1,7 @@
 import sys
 
-from prism import Prism
-from point import Point
+from container.prism import Prism
+from container.point import Point
 
 class Container:
 
