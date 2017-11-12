@@ -11,7 +11,7 @@ class Container:
         self.length = 55
         self.width = 36
 
-        self.prism = Prism(self.height, self.length, self.width, Point(self.height / 2, self.length / 2, self.width / 2))
+        self.prism = Prism(self.height, self.length, self.width, Point(self.width / 2.0, self.length / 2.0, self.height / 2.0))
 
         self.items = []
 
@@ -21,7 +21,7 @@ class Container:
         self.prisms = []
 
         # Add invisible wall prism
-        self.prisms.append(Prism(self.height, 0, self.width, Point(self.height/2, 0, self.width/2)))
+        self.prisms.append(Prism(self.height, 0, self.width, Point(self.height/2.0, 0, self.width/2.0)))
 
         self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
@@ -66,7 +66,8 @@ class Container:
         res = []
 
         for item in self.items:
-            res.append(item.productID)
+            if not (item.productID in res):
+                res.append(item.productID)
 
         return res
 

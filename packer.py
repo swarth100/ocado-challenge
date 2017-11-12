@@ -117,17 +117,15 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
             EPSILON = 0.01
 
             # Initialise the minimal steps to perform
-            stepZ = max(item.height, 0.2)
+            stepZ = max(item.height, 0.2) + EPSILON
             dZ = item.height / 2.0
 
             dY = item.length / 2.0
 
-            stepX = max(item.width, 0.2)
+            stepX = max(item.width, 0.2) + EPSILON
             dX = item.width / 2.0
 
             isMatch = False
-
-            print "Iterating ID: " + str(item.productID)
 
             # Iterate through all pierce points
             pz = dZ + EPSILON
@@ -140,10 +138,10 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                     )
 
                     prism = None
-
+                    # Retrieve the value of intercepts perpendicular to the Y-axis
                     for intercept in depthIntercepts:
-                        point = Point(px, intercept.getMaxY() + dY + 0.1, pz)
-                        print ">>>>>>>>>>>>>DETERMINE INTERCEPTS: " + str(point)
+                        point = Point(px, intercept.getMaxY() + dY + EPSILON, pz)
+
                         prism = Prism(item.height, item.length, item.width, point)
 
                         for edge in prism.points:
@@ -154,7 +152,7 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                     isInCollision = False
 
                     if prism:
-                        print "Comparing ...."
+                        # Initiate comparison checks
                         for element in curContainer.prisms:
                             for edge in prism.points:
                                 if element.contains(edge):
@@ -166,24 +164,22 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                                     isInCollision = True
                                     break
 
-                        print ".... Terminated comparison"
+                            if isInCollision:
+                                break
 
+                        # If no collision is detected proceed to add the mapping
                         if not isInCollision:
                             curContainer.prisms.append(prism)
-                            print "Adding prism at ID: " + str(curContainerID)
+                            print "Mapped ID: " + str(item.productID)
                             print prism
                             isMatch = True
 
-                    px += stepX + EPSILON
+                    px += stepX
 
-                pz += stepZ + EPSILON
+                pz += stepZ
 
             if not isMatch:
                 advanceCurContainer = True
-
-            print "FAILURE COMPLETE"
-
-            #time.sleep(1)
 
 
         # Retrieve the next Container in the given container bucket
@@ -222,7 +218,7 @@ if __name__ == '__main__':
     for rule in range(1, 10):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 2")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 10")
         rootContainer = Container()
 
         # Setup global container
@@ -261,6 +257,7 @@ if __name__ == '__main__':
                 # Iterate through all previously excluded items
                 for item in excludedCategory:
 
+                    print "ENTERING WITH RULE: " + str(rule)
                     iterateThroughContainers(subContParent.children[0], item, excludedIndexContainers, rule)
 
                     # Add the last used container
@@ -319,12 +316,12 @@ if __name__ == '__main__':
             totWei += cont.getItemWeights()
             print "C#" + str(i) + " \t|items: " + str(len(cont.items)) + \
                   "\t|ID: " + str(cont.getLastItemOrder()) + \
+                  "\t|W: " + str(cont.getItemWeights()) + \
+                  " \t|V: " + str(cont.getItemVolumes()) + \
                   " \t|SG: " + str(cont.getRule5Value()) + \
                   " \t|DW: " + str(cont.getRule6Value()) + \
                   "\t|#: " + str(cont.getCategories()) + \
-                  "   \n|>: " + str(cont.getProductIDs())
-                # "\t|W: " + str(cont.getItemWeights()) + \
-                # " \t|V: " + str(cont.getItemVolumes()) + \
+                  "   \t|>: " + str(cont.getProductIDs())
         print "Necessary containers: " + str(len(result))
         print "CHECKSUM: " + str(totVol) + " " + str(totWei)
 
