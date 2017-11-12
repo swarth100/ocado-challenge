@@ -81,7 +81,7 @@ def splitOnRule(containers, rule):
     return tmpConts
 
 def iterateThroughContainers(parent, indexContainers, rule):
-
+    # By default to not extend list of containers
     newCurContainer = False
 
     # Reset boolean conditions upon every iteration
@@ -119,10 +119,8 @@ def iterateThroughContainers(parent, indexContainers, rule):
     if newCurContainer:
         newContainer(parent, indexContainers)
 
-    # Add item to given container
+    # Add item to given container found via ID
     getCurContainer(curContainerID, indexContainers).addItem(item)
-
-    return curContainerID
 
 # Main method
 if __name__ == '__main__':
@@ -147,40 +145,47 @@ if __name__ == '__main__':
         # - - - - - - - - - - - - - - - - - - - - -
         # Actual start of algorithm
 
+        # Initialise result array
         result = []
-
-        excludedCategory = []
-        newIndexContainers = []
 
         # Split on Rule 1
         subContainers = splitOnRule([rootContainer], rule)
 
         subContainers.append(Container())
 
+        # Initialise Rule 8 variables
         subContParent = None
+        excludedCategory = []
+        excludedIndexContainers = []
 
+        # Iterate through the list of containers
         for subCont in subContainers:
 
+            # Check if the global parent has changed.
+            # Should it have we must post-process a lot of the data
             if subCont.parent != subContParent and (rule >= 8) and subContParent:
 
-                if len(newIndexContainers) == 0:
-                    newContainer(subContParent.children[0], newIndexContainers)
+                if len(excludedIndexContainers) == 0:
+                    newContainer(subContParent.children[0], excludedIndexContainers)
 
                 # Iterate through all previously excluded items
                 for item in excludedCategory:
 
-                    iterateThroughContainers(subContParent.children[0], newIndexContainers, rule)
+                    iterateThroughContainers(subContParent.children[0], excludedIndexContainers, rule)
 
                     # Add the last used container
-                addAllSubcontainers(newIndexContainers, result)
-
-                subContParent = subCont.parent
-                excludedCategory = []
-                newIndexContainers = []
+                addAllSubcontainers(excludedIndexContainers, result)
 
             # Split the contents of the container
             # Initialise result list
             indexContainers = []
+
+            # Re-initialise categories to empty status
+            excludedCategory = []
+            excludedIndexContainers = []
+
+            # Set pointer values
+            subContParent = subCont.parent
 
             newContainer(subCont, indexContainers)
             subCont.kill()
@@ -192,37 +197,20 @@ if __name__ == '__main__':
 
                 contentCat = item.category
 
-                # Skip 7s and add them later on
                 if (rule >= 8) and (item.category == 7):
+                    # Skip 7s and add them to a list of excluded items
                     excludedCategory.append(item)
-                    continue
                 else:
-                    curContainerID = iterateThroughContainers(subCont, indexContainers, rule)
+                    # Record all other values normally
+                    iterateThroughContainers(subCont, indexContainers, rule)
 
             # Add the last used container
             if ((contentCat == 4) or (contentCat == 7) or (contentCat == 8)) and (rule >= 8):
-                addAllSubcontainers(indexContainers, newIndexContainers)
+                addAllSubcontainers(indexContainers, excludedIndexContainers)
             else:
                 addAllSubcontainers(indexContainers, result)
 
-            subContParent = subCont.parent
-
         # - - - - - - - - - - - - - - - - - - - - -
-
-        # Remove the leading empty element
-
-        #print "FINAL CHILD NUMBER"
-
-        #print len(rootContainer.children)
-
-        #for elem in rootContainer.children:
-        #    print "--"
-        #    print len(elem.children)
-        #    print "-"
-
-        #    for c in elem.children:
-        #        print len(c.children)
-
         # Final printout
         print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
         print "Rule: #" + str(rule)
