@@ -164,7 +164,8 @@ if __name__ == '__main__':
             # Check if the global parent has changed.
             # Should it have we must post-process a lot of the data
             if subCont.parent != subContParent and (rule >= 8) and subContParent:
-
+                
+                # Initialise containers to one should the list be empty
                 if len(excludedIndexContainers) == 0:
                     newContainer(subContParent.children[0], excludedIndexContainers)
 
@@ -176,13 +177,13 @@ if __name__ == '__main__':
                     # Add the last used container
                 addAllSubcontainers(excludedIndexContainers, result)
 
+                # Re-initialise categories to empty status
+                excludedCategory = []
+                excludedIndexContainers = []
+
             # Split the contents of the container
             # Initialise result list
             indexContainers = []
-
-            # Re-initialise categories to empty status
-            excludedCategory = []
-            excludedIndexContainers = []
 
             # Set pointer values
             subContParent = subCont.parent
