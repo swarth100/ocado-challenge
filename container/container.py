@@ -11,6 +11,7 @@ class Container:
         self.items = []
 
         self.parent = None
+        self.children = []
 
         self.rule5 = [1,2,3,4]
         self.rule6 = [1,2,5,6]
@@ -19,9 +20,26 @@ class Container:
     def __len__(self):
         return len(self.items)
 
+    def kill(self):
+        if self.parent:
+            try:
+                self.parent.children.remove(self)
+            except ValueError:
+                self
+
+    def addParent(self, parent):
+        self.parent = parent
+        parent.children.append(self)
+
     def generateChildContainer(self):
         newCont = Container()
-        newCont.parent = self
+        newCont.addParent(self)
+
+        return newCont
+
+    def generateSiblingContainer(self):
+        newCont = Container()
+        newCont.addParent(self.parent)
 
         return newCont
 
@@ -56,7 +74,7 @@ class Container:
     def getRule2Set(self):
         maxID = 0
         res = []
-        buff = Container()
+        buff = self.generateChildContainer()
 
         # Split in containers
         for item in self.items:
@@ -74,24 +92,24 @@ class Container:
         return res
 
     def getRule5Set(self):
-        return self.getRuleSet(self.rule5)
+        return self.getRuleSet(self.rule5, self.generateChildContainer)
 
     def getRule5Value(self):
         return self.getRuleValue(self.getRule5Set())
 
     def getRule6Set(self):
-        return self.getRuleSet(self.rule6)
+        return self.getRuleSet(self.rule6, self.generateSiblingContainer)
 
     def getRule6Value(self):
         return self.getRuleValue(self.getRule6Set())
 
     def getRule7Set(self):
-        return self.getRuleSet(self.rule7)
+        return self.getRuleSet(self.rule7, self.generateSiblingContainer)
 
     def getRule7Value(self):
         return self.getRuleValue(self.getRule7Set())
 
-    def getRuleSet(self, ruleSet):
+    def getRuleSet(self, ruleSet, childFunc):
         itemsLeft = []
         itemsRight = []
 
@@ -101,11 +119,14 @@ class Container:
             else:
                 itemsRight.append(item)
 
-        containerLeft = Container()
+        containerLeft = childFunc()
         containerLeft.addItems(itemsLeft)
 
-        containerRight = Container()
+        containerRight = childFunc()
         containerRight.addItems(itemsRight)
+
+        if childFunc == self.generateSiblingContainer:
+            self.kill()
 
         return containerLeft, containerRight
 

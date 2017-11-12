@@ -28,8 +28,11 @@ def cleanupView(conn):
     conn.execute("DROP VIEW PRODUCT_ORDERS")
     conn.commit()
 
-def newContainer(parent, indexContainers):
-    newContainer = parent.generateChildContainer()
+def newContainer(sibling, indexContainers):
+    if sibling.parent:
+        newContainer = sibling.generateSiblingContainer()
+    else:
+        newContainer = sibling.generateChildContainer()
     indexContainers.append(newContainer)
 
 def getCurContainer(index, list):
@@ -39,6 +42,8 @@ def addAllSubcontainers(subs, main):
     for elem in subs:
         if len(elem) != 0:
             main.append(elem)
+        else:
+            elem.kill()
 
 # Method to split the given macroContainer given a set of rules
 def splitOnRule(containers, rule):
@@ -85,15 +90,15 @@ if __name__ == '__main__':
     initView(conn)
 
     # Get a list of available items
-    for rule in range (1, 8):
+    for rule in range(1, 8):
 
         # Query data
         orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS")
-        container = Container()
+        rootContainer = Container()
 
         # Setup global container
         for row in orderData:
-            container.addItem(Item(rule, row))
+            rootContainer.addItem(Item(rule, row))
 
         # - - - - - - - - - - - - - - - - - - - - -
         # Actual start of algorithm
@@ -101,7 +106,7 @@ if __name__ == '__main__':
         result = []
 
         # Split on Rule 1
-        subContainers = splitOnRule([container], rule)
+        subContainers = splitOnRule([rootContainer], rule)
 
         for subCont in subContainers:
 
@@ -110,6 +115,7 @@ if __name__ == '__main__':
             indexContainers = []
 
             newContainer(subCont, indexContainers)
+            subCont.kill()
 
             # Iterate through all items in global container
             for item in subCont.items:
@@ -159,6 +165,18 @@ if __name__ == '__main__':
         # - - - - - - - - - - - - - - - - - - - - -
 
         # Remove the leading empty element
+
+        print "FINAL CHILD NUMBER"
+
+        print len(rootContainer.children)
+
+        for elem in rootContainer.children:
+            print "--"
+            print len(elem.children)
+            print "-"
+
+            for c in elem.children:
+                print len(c.children)
 
         # Final printout
         print "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
