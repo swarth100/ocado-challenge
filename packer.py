@@ -271,7 +271,7 @@ if __name__ == '__main__':
                 # Iterate through all previously excluded items
                 for item in excludedCategory:
 
-                    print "ENTERING WITH RULE: " + str(rule)
+                    # print "ENTERING WITH RULE: " + str(rule)
                     iterateThroughContainers(subContParent.children[0], item, excludedIndexContainers, rule)
 
                     # Add the last used container
