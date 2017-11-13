@@ -117,23 +117,29 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
             EPSILON = 0.01
 
             # Initialise the minimal steps to perform
-            stepZ = max(item.height, 0.2) + EPSILON
+            stepZ = max(item.height, 0) + EPSILON
             dZ = item.height / 2.0
 
             dY = item.length / 2.0
 
-            stepX = max(item.width, 0.2) + EPSILON
+            stepX = max(item.width, 0) + EPSILON
             dX = item.width / 2.0
 
+            # Initiate rotation checks for rule 10
+            RANGE_MAX = 1
+            rot = 0
+            if (rule >= 10):
+                RANGE_MAX = 4
+
             isMatch = False
-            for i in range(3):
-                has_rotated = False
+            while (rot < RANGE_MAX) and not isMatch :
                 # Iterate through all pierce points
                 pz = dZ + EPSILON
                 while (pz <= curContainer.height - dZ) and not isMatch:
                     px = dX + EPSILON
                     while (px <= curContainer.width - dX) and not isMatch:
 
+                        # Determine the depth intercepts
                         depthIntercepts = curContainer.getNextCoord(
                                 lambda x: filter(lambda y: y.isInRange(px, pz), x)
                                 )
@@ -144,14 +150,16 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                             point = Point(px, intercept.getMaxY() + dY + EPSILON, pz)
 
                             prism = Prism(item.height, item.length, item.width, point)
-                            if rule >= 10:
-                                if not has_rotated and i == 1:
-                                    has_rotated = True
-                                    prism.rotateHorizontal()
-                                if not has_rotated and i == 2:
-                                    has_rotated = True
-                                    prism.rotateVerticle()
 
+                            # Rot values greater than 0 only occur for rule >= 10
+                            if rot == 1:
+                                prism.rotateHorizontal()
+                            elif rot == 2:
+                                prism.rotateVerticle()
+                            elif rot == 3:
+                                prism.rotateDepth()
+
+                            # Check that the prism can fit in the container for said position
                             for edge in prism.points:
                                 if not curContainer.prism.contains(edge):
                                     prism = None
@@ -162,16 +170,20 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                         if prism:
                             # Initiate comparison checks
                             for element in curContainer.prisms:
+
+                                # Check that none of our current edges are contained in another prism
                                 for edge in prism.points:
                                     if element.contains(edge):
                                         isInCollision = True
                                         break
 
+                                # Check that none of other prism points are contained in us
                                 for edge in element.points:
                                     if prism.contains(edge):
                                         isInCollision = True
                                         break
 
+                                # Break loop at first detected collision
                                 if isInCollision:
                                     break
 
@@ -182,15 +194,13 @@ def iterateThroughContainers(parent, item, indexContainers, rule):
                                 # print prism
                                 isMatch = True
 
+                        # Increase step on x-axis
                         px += stepX
 
+                    # Increase step on z-axis
                     pz += stepZ
 
-                if rule >= 10:
-                    break
-
-                if isMatch:
-                    break
+                rot += 1
 
             if not isMatch:
                 advanceCurContainer = True
@@ -232,7 +242,7 @@ if __name__ == '__main__':
     for rule in range(1, 11):
 
         # Query data
-        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 50")
+        orderData = conn.execute("SELECT * FROM PRODUCT_ORDERS WHERE ORDERID <= 25")
         rootContainer = Container()
 
         # Setup global container
@@ -334,19 +344,19 @@ if __name__ == '__main__':
                     " \t|V: " + str(cont.getItemVolumes()) + \
                     " \t|SG: " + str(cont.getRule5Value()) + \
                     " \t|DW: " + str(cont.getRule6Value()) + \
-                    "\t|#: " + str(cont.getCategories()) + \
-                    "   \t|>: " + str(cont.getProductIDs()))
+                    "\t|#: " + str(cont.getCategories()))
+                    #"   \t|>: " + str(cont.getProductIDs()))
         print("Necessary containers: " + str(len(result)))
         print("CHECKSUM: " + str(totVol) + " " + str(totWei))
 
-        with open('./output/SSPack_rule_9.csv', 'w') as f:
-            print('ORDER_ID,CONTAINER_ID,SKU_ID', file=f)
-            for i in range(0, len(result)):
-                cont = result[i]
-                order_id = str(cont.getLastItemOrder())
-                cont_id = str(i)
-                for product_id in cont.getProductIDs():
-                    print(order_id + ',' + cont_id + ',' + str(product_id), file=f)
+        #with open('./output/SSPack_rule_9.csv', 'w') as f:
+        #    print('ORDER_ID,CONTAINER_ID,SKU_ID', file=f)
+        #    for i in range(0, len(result)):
+        #        cont = result[i]
+        #        order_id = str(cont.getLastItemOrder())
+        #        cont_id = str(i)
+        #        for product_id in cont.getProductIDs():
+        #            print(order_id + ',' + cont_id + ',' + str(product_id), file=f)
 
     # Cleanup code
     cleanupView(conn)

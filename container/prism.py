@@ -1,4 +1,4 @@
-from container.point import Point
+from point import Point
 
 class Prism:
 
@@ -65,4 +65,10 @@ class Prism:
         temp_length = self.length
         self.length = self.width
         self.width = temp_length
+        self.setDimension()
+
+    def rotateDepth(self):
+        temp_width = self.width
+        self.width = self.height
+        self.height = temp_width
         self.setDimension()
